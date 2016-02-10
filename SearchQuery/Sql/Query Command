@@ -1,0 +1,15 @@
+<Mysql Query Command for snp between m1 and m3>
+
+ 
+//below command gives the result of those case in which snp is present in both m1 and m3.
+//one case for snp between m1 and m3 is yet to be retrieved(if snp is present in only one of m1 or m3)
+
+mysql> select t.Chromosome_Position,t.Chromosome,t.Ref,t.ALT as M3_ALT,t2.ALT as M1_ALT  from  (select c.Chromosome_Position, d.ChickenLine_Name,e.Chromosome,c.ALT,c.Ref  from Common_ChickenLines c, ChickenLine_Info d ,ChickenLine_Chromosome_Info e  where (c.ChickenLine_ID = d.ChickenLine_ID and d.ChickenLine_Name ='m3') and c.Chromosome_ID = e.Chromosome_ID) as t inner join  (select c.Chromosome_Position, d.ChickenLine_Name,e.Chromosome,c.ALT,c.Ref  from Common_ChickenLines c, ChickenLine_Info d ,ChickenLine_Chromosome_Info e  where (c.ChickenLine_ID = d.ChickenLine_ID and d.ChickenLine_Name ='m1') and c.Chromosome_ID = e.Chromosome_ID) as t2 where t.Chromosome_Position = t2.Chromosome_Position and t.ALT != t2.ALT; 
++---------------------+------------+-----+--------+--------+
+| Chromosome_Position | Chromosome | Ref | M3_ALT | M1_ALT |
++---------------------+------------+-----+--------+--------+
+|                   2 | 1          | C   | T      | A      |
+|                   8 | 1          | T   | G      | A      |
++---------------------+------------+-----+--------+--------+
+2 rows in set (0.01 sec)
+
