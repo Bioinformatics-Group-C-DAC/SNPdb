@@ -1,0 +1,305 @@
+-- --------------------------------------------------------------------------------
+-- Routine DDL
+-- Note: comments before and after the routine body will not be stored by the server
+-- --------------------------------------------------------------------------------
+DELIMITER \\
+
+CREATE PROCEDURE `SNPAlignment_m1m2`(IN chickenlines_setone varchar(20),IN chickenlines_settwo varchar(20))
+BEGIN
+
+DECLARE SNPSetone varchar(20);
+DECLARE SNPSettwo varchar(20);
+
+DECLARE outerloop_x,innerloop_x1,outerloop_y,innerloop_y1,i,count INT ; 
+
+DECLARE query_commonchickenlines varchar(256);
+DECLARE query_createtemptablechickenlines varchar(256);
+DECLARE query_createsnpresult varchar(256);
+DECLARE query_tempchickenlines varchar(256);
+DECLARE query_insertsnpresult varchar(256);
+DECLARE query_droptempchickenlines varchar(256);
+DECLARE query_tempchickenlinescount varchar(10);
+
+DECLARE alignedchickenlines VARCHAR(50);
+DECLARE random VARCHAR(50);
+
+SELECT LEFT(UUID(), 8) INTO @random;
+
+SET @SNPSetone=chickenlines_setone;
+SET @SNPSettwo=chickenlines_settwo;
+SET outerloop_y = 1;
+SET @query_commonchickenlines= 'select c.Chromosome,e.Chromosome_Position, e.Ref';
+SET @query_createtemptablechickenlines=CONCAT('create table Temp_',@random,'(Chromosome char(5),Chromosome_Position int(11),Ref char(1)');
+SET @query_createsnpresult='create table SNPresult(sequence char(255))';
+SET @query_tempchickenlines='SELECT Chromosome,Chromosome_Position,Ref';
+SET @query_droptempchickenlines=CONCAT('DROP TABLE IF EXISTS Temp_',@random);
+SET @query_tempchickenlinescount =CONCAT('select count(*) into @count from Temp_',@random);
+
+IF NOT chickenlines_setone IS NULL 
+    THEN 
+           SELECT LENGTH(chickenlines_setone) - LENGTH(REPLACE(chickenlines_setone, ',', '')) INTO @noOfCommas; 
+           
+           IF @noOfCommas != 0  THEN 
+                
+                SET outerloop_x = @noOfCommas + 1;
+                WHILE outerloop_y  <=  outerloop_x DO 
+                    SELECT split_string(chickenlines_setone, ',', outerloop_y) INTO @tblnm; 
+                        if(outerloop_y<outerloop_x) then
+                            set @query_commonchickenlines = CONCAT(@query_commonchickenlines,', max(case when e.ChickenLine_ID=f.ChickenLine_ID and f.ChickenLine_Name =','\'',@tblnm,'\' then ALT END) as ',@tblnm);
+                            set @query_createtemptablechickenlines = CONCAT(@query_createtemptablechickenlines,',ALT_',@tblnm,' char(1)');    
+                            set @query_tempchickenlines=CONCAT(@query_tempchickenlines,',ALT_',@tblnm,',');
+                            
+                        elseif(outerloop_y=outerloop_x) then
+                            set @query_commonchickenlines = CONCAT(@query_commonchickenlines,', max(case when e.ChickenLine_ID=f.ChickenLine_ID and f.ChickenLine_Name =','\'',@tblnm,'\' then ALT END) as ',@tblnm);
+                            set @query_createtemptablechickenlines = CONCAT(@query_createtemptablechickenlines,',ALT_',@tblnm,' char(1)');
+                            set @query_tempchickenlines=CONCAT(@query_tempchickenlines,',ALT_',@tblnm);
+                            
+                            /** fro set two */
+
+                                set innerloop_y1=1;
+
+                                IF NOT chickenlines_settwo IS NULL 
+                                    THEN 
+                                           SELECT LENGTH(chickenlines_settwo) - LENGTH(REPLACE(chickenlines_settwo, ',', '')) INTO @noOfCommas1; 
+                                           
+                                           IF @noOfCommas1 != 0  THEN 
+                                                
+                                                SET innerloop_x1 = @noOfCommas1 + 1;
+                                                WHILE innerloop_y1  <=  innerloop_x1 DO 
+                                                    SELECT split_string(chickenlines_settwo, ',', innerloop_y1) INTO @tblnm1; 
+                                                        if(innerloop_y1<innerloop_x1) then
+                                                            set @query_commonchickenlines = CONCAT(@query_commonchickenlines,', max(case when e.ChickenLine_ID=f.ChickenLine_ID and f.ChickenLine_Name =','\'',@tblnm1,'\' then ALT END) as ',@tblnm1);
+                                                            set @query_createtemptablechickenlines = CONCAT(@query_createtemptablechickenlines,',ALT_',@tblnm1,' char(1)');    
+                                                            set @query_tempchickenlines=CONCAT(@query_tempchickenlines,',ALT_',@tblnm1);
+                                                            
+                                                        elseif(innerloop_y1=innerloop_x1) then
+                                                            set @query_commonchickenlines = CONCAT(@query_commonchickenlines,', max(case when e.ChickenLine_ID=f.ChickenLine_ID and f.ChickenLine_Name =','\'',@tblnm1,'\' then ALT END) as ',@tblnm1);
+                                                            set @query_createtemptablechickenlines = CONCAT(@query_createtemptablechickenlines,',ALT_',@tblnm1,' char(1))');
+                                                            set @query_tempchickenlines=CONCAT(@query_tempchickenlines,',ALT_',@tblnm1);
+                                                        end if;
+                                                        SET  innerloop_y1 = innerloop_y1 + 1;                    
+                                                END WHILE; 
+                                               ELSE
+                                                set @query_commonchickenlines = CONCAT(@query_commonchickenlines,', max(case when e.ChickenLine_ID=f.ChickenLine_ID and f.ChickenLine_Name =','\'',@SNPSettwo,'\' then ALT END) as ',@SNPSettwo);
+                                                set @query_createtemptablechickenlines = CONCAT(@query_createtemptablechickenlines,',ALT_',@SNPSettwo,' char(1))');
+                                                set @query_tempchickenlines=CONCAT(@query_tempchickenlines,',ALT_',@SNPSettwo);
+                                            END IF;
+                                    END IF;
+
+                                /** end set two*/
+
+                            
+                        end if;
+                        SET  outerloop_y = outerloop_y + 1;                    
+                END WHILE; 
+            ELSE
+                set @query_commonchickenlines = CONCAT(@query_commonchickenlines,', max(case when e.ChickenLine_ID=f.ChickenLine_ID and f.ChickenLine_Name =','\'',@SNPSetone,'\' then ALT END) as ',@SNPSetone);
+                set @query_createtemptablechickenlines = CONCAT(@query_createtemptablechickenlines,',ALT_',@SNPSetone,' char(1)');    
+                set @query_tempchickenlines=CONCAT(@query_tempchickenlines,',ALT_',@SNPSetone);                
+               select @query_tempchickenlines;
+                    /** fro set two */
+
+                    set innerloop_y1=1;
+
+                    IF NOT chickenlines_settwo IS NULL 
+                        THEN 
+                               SELECT LENGTH(chickenlines_settwo) - LENGTH(REPLACE(chickenlines_settwo, ',', '')) INTO @noOfCommas1; 
+                               
+                               IF @noOfCommas1 != 0  THEN 
+                                    
+                                    SET innerloop_x1 = @noOfCommas1 + 1;
+                                    WHILE innerloop_y1  <=  innerloop_x1 DO 
+                                        SELECT split_string(chickenlines_settwo, ',', innerloop_y1) INTO @tblnm1; 
+                                            if(innerloop_y1<innerloop_x1) then
+                                                set @query_commonchickenlines = CONCAT(@query_commonchickenlines,', max(case when e.ChickenLine_ID=f.ChickenLine_ID and f.ChickenLine_Name =','\'',@tblnm1,'\' then ALT END) as ',@tblnm1);
+                                                set @query_createtemptablechickenlines = CONCAT(@query_createtemptablechickenlines,',ALT_',@tblnm1,' char(1)');    
+                                                set @query_tempchickenlines=CONCAT(@query_tempchickenlines,',ALT_',@tblnm1);
+                                                
+                                            elseif(innerloop_y1=innerloop_x1) then
+                                                set @query_commonchickenlines = CONCAT(@query_commonchickenlines,', max(case when e.ChickenLine_ID=f.ChickenLine_ID and f.ChickenLine_Name =','\'',@tblnm1,'\' then ALT END) as ',@tblnm1);
+                                                set @query_createtemptablechickenlines = CONCAT(@query_createtemptablechickenlines,',ALT_',@tblnm1,' char(1))');
+                                                set @query_tempchickenlines=CONCAT(@query_tempchickenlines,',ALT_',@tblnm1);
+                                            end if;
+                                            SET  innerloop_y1 = innerloop_y1 + 1;                    
+                                    END WHILE; 
+                                  ELSE
+                                    set @query_commonchickenlines = CONCAT(@query_commonchickenlines,', max(case when e.ChickenLine_ID=f.ChickenLine_ID and f.ChickenLine_Name =','\'',@SNPSettwo,'\' then ALT END) as ',@SNPSettwo);
+                                    set @query_createtemptablechickenlines = CONCAT(@query_createtemptablechickenlines,',ALT_',@SNPSettwo,' char(1))');
+                                    set @query_tempchickenlines=CONCAT(@query_tempchickenlines,',ALT_',@SNPSettwo);
+                                    select @query_tempchickenlines;
+                                END IF;
+                        END IF;
+
+                    /** end set two*/
+
+
+
+
+            END IF;
+    END IF;
+
+
+
+set @query_commonchickenlines=CONCAT(@query_commonchickenlines,' from Common_ChickenLines e ,ChickenLine_Chromosome_Info c , ChickenLine_Info f where c.Chromosome_ID= e.Chromosome_ID group by e.Chromosome_ID,e.Chromosome_Position');
+
+set @query_tempchickenlines=CONCAT(@query_tempchickenlines,' into @Chromosome, @Chromosome_Position,@Ref');
+
+set outerloop_y=1;
+IF NOT chickenlines_setone IS NULL 
+    THEN 
+           SELECT LENGTH(chickenlines_setone) - LENGTH(REPLACE(chickenlines_setone, ',', '')) INTO @noOfCommas; 
+           
+           IF @noOfCommas != 0  THEN 
+                
+                SET outerloop_x = @noOfCommas + 1;
+                WHILE outerloop_y  <=  outerloop_x DO 
+                    SELECT split_string(chickenlines_setone, ',', outerloop_y) INTO @tblnm; 
+                        if(outerloop_y<outerloop_x) then
+                            set @query_tempchickenlines=CONCAT(@query_tempchickenlines,',@ALT_',@tblnm);
+                        elseif(outerloop_y=outerloop_x) then
+                            set @query_tempchickenlines=CONCAT(@query_tempchickenlines,',@ALT_',@tblnm);
+
+                            /** fro set two */
+
+                                set innerloop_y1=1;
+
+                                IF NOT chickenlines_settwo IS NULL 
+                                    THEN 
+                                           SELECT LENGTH(chickenlines_settwo) - LENGTH(REPLACE(chickenlines_settwo, ',', '')) INTO @noOfCommas1; 
+                                           
+                                           IF @noOfCommas1 != 0  THEN 
+                                                
+                                                SET innerloop_x1 = @noOfCommas1 + 1;
+                                                WHILE innerloop_y1  <=  innerloop_x1 DO 
+                                                    SELECT split_string(chickenlines_settwo, ',', innerloop_y1) INTO @tblnm1; 
+                                                        if(innerloop_y1<innerloop_x1) then
+                                                            set @query_tempchickenlines=CONCAT(@query_tempchickenlines,',@ALT_',@tblnm1);
+                                                            
+                                                        elseif(innerloop_y1=innerloop_x1) then
+                                                            set @query_tempchickenlines=CONCAT(@query_tempchickenlines,',@ALT_',@tblnm1);
+                                                        end if;
+                                                        SET  innerloop_y1 = innerloop_y1 + 1;                    
+                                                END WHILE; 
+                                            ELSE
+                                                 set @query_tempchickenlines=CONCAT(@query_tempchickenlines,',@ALT_',@SNPSettwo);
+                                                            
+                                            END IF;
+                                    END IF;
+
+                                /** end set two*/
+
+                        end if;
+                        SET  outerloop_y = outerloop_y + 1;                    
+                END WHILE; 
+            ELSE
+                set @query_tempchickenlines=CONCAT(@query_tempchickenlines,',@ALT_',@SNPSetone);
+                      
+                    /** fro set two */
+
+                    set innerloop_y1=1;
+
+                    IF NOT chickenlines_settwo IS NULL 
+                        THEN 
+                               SELECT LENGTH(chickenlines_settwo) - LENGTH(REPLACE(chickenlines_settwo, ',', '')) INTO @noOfCommas1; 
+                               
+                               IF @noOfCommas1 != 0  THEN 
+                                    
+                                    SET innerloop_x1 = @noOfCommas1 + 1;
+                                    WHILE innerloop_y1  <=  innerloop_x1 DO 
+                                        SELECT split_string(chickenlines_settwo, ',', innerloop_y1) INTO @tblnm1; 
+                                            if(innerloop_y1<innerloop_x1) then
+                                                set @query_tempchickenlines=CONCAT(@query_tempchickenlines,',@ALT_',@tblnm1);
+                                                
+                                            elseif(innerloop_y1=innerloop_x1) then
+                                                set @query_tempchickenlines=CONCAT(@query_tempchickenlines,',@ALT_',@tblnm1);
+                                            end if;
+                                            SET  innerloop_y1 = innerloop_y1 + 1;                    
+                                    END WHILE; 
+                                ELSE
+                                     set @query_tempchickenlines=CONCAT(@query_tempchickenlines,',@ALT_',@SNPSettwo);
+                                                
+                                END IF;
+                        END IF;
+
+                    /** end set two*/
+
+
+
+
+
+     
+            END IF;
+        END IF;
+
+set @query_tempchickenlines=CONCAT(@query_tempchickenlines,' from Temp_',@random,' limit ?,1');
+set @insertTempTablequery = CONCAT('INSERT INTO Temp_',@random,' ',@query_commonchickenlines);
+
+select @query_commonchickenlines,@query_tempchickenlines,@query_createtemptablechickenlines,@insertTempTablequery;
+
+
+
+PREPARE stmt FROM @query_commonchickenlines;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+
+PREPARE stmt FROM @query_createtemptablechickenlines;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+PREPARE stmt FROM @insertTempTablequery;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+PREPARE stmt FROM @query_createsnpresult;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+
+PREPARE stmt FROM @query_tempchickenlinescount;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+
+SET @i=0;
+WHILE @i < @count DO
+
+    
+
+    PREPARE stmt FROM @query_tempchickenlines;
+    EXECUTE stmt USING @i;
+    DEALLOCATE PREPARE stmt;
+
+    
+       if @ALT_m1 IS NULL then
+        set @ALT_m1=CONCAT(@Ref);
+       END IF;   
+       if @ALT_m2 IS NULL then
+              set @ALT_m2=CONCAT(@Ref);
+       END IF;
+
+       if @ALT_m3 IS NULL then
+        set @ALT_m3=CONCAT(@Ref);
+       END IF;   
+       
+        if @ALT_m4 IS NULL then
+              set @ALT_m4=CONCAT(@Ref);
+       END IF;
+
+       SET @alignedchickenlines = CONCAT(@chromosome,':',CAST(@Chromosome_Position AS CHAR(10)),'(',@Ref,'):m1:',@ALT_m1,';m2:',@ALT_m2);
+
+       if(@ALT_m1!=@ALT_m2) then 
+            insert into SNPresult values(@alignedchickenlines);
+       end if;
+
+
+    set @i=@i+1;
+   
+END WHILE;
+
+
+PREPARE stmt FROM @query_droptempchickenlines;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+END

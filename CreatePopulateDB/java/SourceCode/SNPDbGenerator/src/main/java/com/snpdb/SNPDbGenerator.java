@@ -70,7 +70,7 @@ public class SNPDbGenerator {
                     extentionSeperator = chickenFileFullName.indexOf(".");
                     chickenFileName = chickenFileFullName.substring(0, extentionSeperator);
                     headerCount = readChickenFile(chickenFile);
-                    query = em.createNativeQuery("LOAD DATA LOCAL INFILE '" + chickenFile.getAbsolutePath() + "' INTO TABLE Common_ChickenLines FIELDS TERMINATED BY'\t' LINES TERMINATED BY '\n' ignore " + headerCount + " lines (@col1,@col2,@col3,@col4,@col5,@col6,@col7,@col8) set Chromosome_Position=@col2,Ref=@col4, ALT= @col5, ChickenLine_ID = (select ChickenLine_ID from ChickenLine_Info where ChickenLine_Name='" + chickenFileName + "'),Chromosome_ID=(select Chromosome_ID from ChickenLine_Chromosome_Info where @col1 = Chromosome);");                    
+                    query = em.createNativeQuery("LOAD DATA LOCAL INFILE '" + chickenFile.getAbsolutePath() + "' INTO TABLE Common_ChickenLines FIELDS TERMINATED BY'\t' LINES TERMINATED BY '\n' ignore " + headerCount + " lines (@col1,@col2,@col3,@col4,@col5,@col6,@col7,@col8,@col9,@col10) set Chromosome_Position=@col2,Ref=@col4, ALT= @col5, ChickenLine_ID = (select ChickenLine_ID from ChickenLine_Info where ChickenLine_Name='" + chickenFileName + "'),Chromosome_ID=(select Chromosome_ID from ChickenLine_Chromosome_Info where @col1 = Chromosome);");                    
                     query.executeUpdate();
                 } catch (IOException ex) {
                     Logger.getLogger(SNPDbGenerator.class.getName()).log(Level.SEVERE, null, ex);
