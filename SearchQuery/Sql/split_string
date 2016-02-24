@@ -1,0 +1,12 @@
+-- --------------------------------------------------------------------------------
+-- Routine DDL
+-- Note: comments before and after the routine body will not be stored by the server
+-- --------------------------------------------------------------------------------
+DELIMITER $$
+
+CREATE DEFINER=`saurabh`@`%` FUNCTION `split_string`(
+
+stringToSplit VARCHAR(256), sign VARCHAR(12), position INT) RETURNS varchar(256) CHARSET latin1
+BEGIN
+        RETURN REPLACE(SUBSTRING(SUBSTRING_INDEX(stringToSplit, sign, position),LENGTH(SUBSTRING_INDEX(stringToSplit, sign, position -1)) + 1), sign, '');
+END

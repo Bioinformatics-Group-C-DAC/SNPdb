@@ -1,0 +1,27 @@
+Directory Structure in git hub as on 24 Feb-2016:
+
+SNPDb
+ ---CreatePopulateDB
+      |	
+      |---Java
+	    |
+	    |--SourceCode
+	    |--executable
+	    |--toydata
+
+ ---SearchQuery
+      |---Sql
+            |-----Stored Procedure(SNPALIGNMENT_Lines_SP)
+            |-----Read Me(To Run for sql Script)	
+	    |-----split_string(function supporting Stored Procedure)
+	    |-----SNPMatch(function supporting function supporting)
+      |---UI
+
+
+
+For SNPAlignmentm1m2_SP
+
+1)To run Stored Prcodure on mysql Prompt
+	"call SNPAlignment_Lines_SP('Line1,...','Line2,..',chromosome,'rangestart-rangeend');"
+
+2)Results will be in SNPresults table in the database.
