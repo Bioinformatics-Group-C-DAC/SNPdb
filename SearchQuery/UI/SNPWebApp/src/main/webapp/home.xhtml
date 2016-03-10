@@ -1,0 +1,138 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:f="http://java.sun.com/jsf/core"
+      xmlns:pri="http://primefaces.org/ui" 
+      xmlns:pe="http://primefaces.org/ui/extensions" 
+      xmlns:p="http://xmlns.jcp.org/jsf/passthrough">
+    <h:head>
+        <style type="text/css">
+            .ui-selectonelistbox .ui-selectlistbox-listcontainer, 
+            .ui-selectmanymenu .ui-selectlistbox-listcontainer{
+
+            }
+        </style>
+    </h:head>
+    <h:body class="home image-sphere-style responsive yes_js">
+        <f:view contentType="text/html">
+            <ui:composition template="./template/commonLayout.xhtml">
+                <ui:define name="content">
+
+
+                    <div id="content" class="gradient layout-sidebar-no group">
+
+                        <!-- SLOGAN -->
+                        <div id="slogan1" class="inner">
+                            <h:form id="formbasic" prependId="false" >  
+                                <table border="border" align="center" >
+                                    <tr>
+                                        <td colspan="4">
+                                            <font color="red" size="9">
+                                                <h:messages id="msgadv" style="color: red;"/>
+                                            </font>
+                                        </td>
+                                         
+                                    </tr>
+                                    <tr>
+                                        <th>Line Set 1</th>
+                                        <th>Line Set 2</th>
+                                        <th valign="middle">
+                                            <pri:selectBooleanCheckbox value="#{snpHomeBean.value1}"  >
+                                                
+                                                <f:ajax render=":formbasic"/>
+                                            </pri:selectBooleanCheckbox>  
+                                            <h:outputLabel value="Use range with chromosome"/>
+                                        </th>
+                                        <th width="50%"></th>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <h:selectManyMenu value="#{snpHomeBean.selectedChickenLineInfoSetOne}"  
+                                                              style="height: 90px;width: 200px;text-align: left;
+                                                              overflow-y: scroll"   >  
+                                                <f:selectItems value="#{snpHomeBean.chickenLineInfo}" 
+                                                               itemLabel="#{snpHomeBean.chickenLineInfo}" 
+                                                               itemValue="#{snpHomeBean.chickenLineInfo}" />                                             
+                                            </h:selectManyMenu>
+                                        </td>
+                                        <td>
+                                            <h:selectManyMenu value="#{snpHomeBean.selectedChickenLineInfoSetTwo}"  
+                                                              style="height: 90px;width: 200px;text-align: left;overflow-y: scroll"   >  
+                                                <f:selectItems value="#{snpHomeBean.chickenLineInfo}" 
+                                                               itemLabel="#{snpHomeBean.chickenLineInfo}" 
+                                                               itemValue="#{snpHomeBean.chickenLineInfo}" />                                             
+                                            </h:selectManyMenu>
+                                        </td>
+
+                                        <td>
+                                            <h:panelGrid id="two" columns="2" 
+                                                         rendered="#{!snpHomeBean.value1}">
+                                                <h:outputLabel value="Chromosome"/>
+                                                <h:inputText value="#{snpHomeBean.chromosome}"/>
+
+                                                <h:outputLabel value="start"/>
+                                                <h:inputText value="#{snpHomeBean.startPosition}"/>
+                                                <h:outputLabel value="end"/>
+                                                <h:inputText value="#{snpHomeBean.endPosition}"/>
+
+                                            </h:panelGrid>
+
+                                            <h:panelGrid id="one" columns="2" 
+                                                         rendered="#{snpHomeBean.value1}">
+                                                <h:outputLabel value="Chromosome"/>                                        
+                                                <h:inputText value="#{snpHomeBean.chromosome}" p:placeholder="A:00000-0000"/>
+                                            </h:panelGrid>
+                                        </td>
+                                        <td valign="bottom">
+                                            <pri:commandButton id="saveBtn" update="formbasic msgadv"
+                                                               action="#{snpHomeBean.submit()}" value="Submit" 
+                                                             onstart="PF('blockUIWidget').block()"  
+                                                             oncomplete="PF('blockUIWidget').unblock()"/>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td colspan="4">
+
+                                        </td>
+                                    </tr> 
+                                    
+                                </table>
+                            <pe:blockUI widgetVar="blockUIWidget"
+                                        cssOverlay="{backgroundColor: 'red'}">
+                                <h:panelGrid columns="2">
+                                    <h:graphicImage library="images" name="ajax-loader-1.gif"  height="40px" width="40px"
+                                                    style="margin-right: 12px; vertical-align: middle;"/>  
+                                    <h:outputText value="Please wait..." style="white-space: nowrap;"/>                                            
+                                </h:panelGrid>
+                            </pe:blockUI>
+                                
+                                <pri:dataScroller id="z" value="#{snpHomeBean.resultList}" var="sequence" 
+                                                  chunkSize="1000" 
+                                                  mode="inline" scrollHeight="500">
+                                    <f:facet name="header">
+                                        Scroll Down to Load More Sequences
+                                    </f:facet>
+
+                                    <h:panelGrid columns="2" style="width:100%" columnClasses="logo,detail">
+                                        <pri:outputPanel>
+                                            <h:panelGrid columns="1" cellpadding="5">
+                                                <h:outputText value="#{sequence}" style="font-weight: bold"/>
+                                            </h:panelGrid>
+                                        </pri:outputPanel>
+                                    </h:panelGrid>
+                                </pri:dataScroller>  
+
+                            </h:form>
+                        </div>
+                    </div>
+
+
+
+
+                </ui:define>
+            </ui:composition>
+        </f:view>
+    </h:body>
+</html>
