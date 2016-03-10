@@ -1,0 +1,152 @@
+-- --------------------------------------------------------------------------------
+-- Routine DDL
+-- Note: comments before and after the routine body will not be stored by the server
+-- --------------------------------------------------------------------------------
+DELIMITER $$
+
+CREATE DEFINER=`saurabh`@`%` FUNCTION `SNPMatch`(chickenlines varchar(20),chickenlines_settwo varchar(20)) RETURNS tinyint(1)
+BEGIN
+
+DECLARE altmatch boolean;
+DECLARE innerloop_y1,innerloop_x1 int;
+
+set altmatch=false;
+set innerloop_y1=1;
+
+
+
+IF NOT chickenlines_settwo IS NULL 
+    THEN 
+           SELECT LENGTH(chickenlines_settwo) - LENGTH(REPLACE(chickenlines_settwo, ',', '')) INTO @noOfCommas; 
+           
+           IF @noOfCommas != 0  THEN 
+                
+                SET innerloop_x1 = @noOfCommas + 1;
+                myloop: WHILE innerloop_y1  <=  innerloop_x1 DO 
+
+                    SELECT split_string(chickenlines_settwo, ',', innerloop_y1) INTO @snpvalue; 
+                        CASE @snpvalue
+                            WHEN 'm1' THEN
+                                IF(chickenlines!=@m1) then
+                                   set altmatch=true;  
+                                   leave myloop;
+                                end if;
+                            WHEN 'm2' THEN
+                                IF(chickenlines!=@m2) then
+                                   set altmatch=true; 
+                                   leave myloop;
+                                end if;
+                            WHEN 'm3' THEN
+                                IF(chickenlines!=@m3) then
+                                   set altmatch=true;  
+                                   leave myloop;
+                                end if;
+                            WHEN 'm4' THEN
+                                IF(chickenlines!=@m4) then
+                                   set altmatch=true; 
+                                   leave myloop;
+                                end if;
+							WHEN 'Line6' THEN
+                                IF(chickenlines!=@Line6) then
+                                   set altmatch=true;  
+                                   leave myloop;
+                                end if;
+                            WHEN 'Line7' THEN
+                                IF(chickenlines!=@Line7) then
+                                   set altmatch=true; 
+                                   leave myloop;
+                                end if;
+                            WHEN 'LineP' THEN
+                                IF(chickenlines!=@LineP) then
+                                   set altmatch=true;  
+                                   leave myloop;
+                                end if;
+                            WHEN 'LineC' THEN
+                                IF(chickenlines!=@LineC) then
+                                   set altmatch=true; 
+                                   leave myloop;
+                                end if;
+							WHEN 'LineN' THEN
+                                IF(chickenlines!=@LineN) then
+                                   set altmatch=true;  
+                                   leave myloop;
+                                end if;
+                            WHEN 'LineWellcome' THEN
+                                IF(chickenlines!=@LineWellcome) then
+                                   set altmatch=true; 
+                                   leave myloop;
+                                end if;
+                            WHEN 'Line15' THEN
+                                IF(chickenlines!=@Line15) then
+                                   set altmatch=true;  
+                                   leave myloop;
+                                end if;
+                            WHEN 'LineZero' THEN
+                                IF(chickenlines!=@LineZero) then
+                                   set altmatch=true; 
+                                   leave myloop;
+                                end if;
+                            ELSE BEGIN END;
+                                    
+                        END CASE;
+                    SET innerloop_y1=innerloop_y1+1;
+                END WHILE;
+            else
+                CASE chickenlines_settwo
+                    WHEN 'm1' THEN
+                        IF(chickenlines!=@m1) then
+                           set altmatch=true;  
+                        end if;
+                    WHEN 'm2' THEN
+                        IF(chickenlines!=@m2) then
+                           set altmatch=true; 
+                        end if;
+                    WHEN 'm3' THEN
+                        IF(chickenlines!=@m3) then
+                           set altmatch=true;
+                        end if;
+                    WHEN 'm4' THEN
+                        IF(chickenlines!=@m4) then
+                           set altmatch=true; 
+                        end if;
+					WHEN 'Line6' THEN
+									IF(chickenlines!=@Line6) then
+									   set altmatch=true;  
+									end if;
+								WHEN 'Line7' THEN
+									IF(chickenlines!=@Line7) then
+									   set altmatch=true; 									   
+									end if;
+								WHEN 'LineP' THEN
+									IF(chickenlines!=@LineP) then
+									   set altmatch=true;  
+									end if;
+								WHEN 'LineC' THEN
+									IF(chickenlines!=@LineC) then
+									   set altmatch=true; 
+									end if;
+								WHEN 'LineN' THEN
+									IF(chickenlines!=@LineN) then
+									   set altmatch=true;  
+									end if;
+								WHEN 'LineWellcome' THEN
+									IF(chickenlines!=@LineWellcome) then
+									   set altmatch=true; 
+									end if;
+								WHEN 'Line15' THEN
+									IF(chickenlines!=@Line15) then
+									   set altmatch=true; 
+									end if;
+								WHEN 'LineZero' THEN
+									IF(chickenlines!=@LineZero) then
+									   set altmatch=true; 
+									end if;
+                    ELSE BEGIN END;
+                            
+                END CASE;
+                
+           END IF;
+END IF;
+
+RETURN altmatch;
+END
